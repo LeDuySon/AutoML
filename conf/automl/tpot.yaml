@@ -1,0 +1,6 @@
+name: "tpot"
+generations: 1
+population_size: 1
+config_dict: ""
+memory: "auto"
+verbosity: 2

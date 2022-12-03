@@ -1,0 +1,8 @@
+defaults:
+  - automl: tpot
+
+datasets: datasets/ys1a.csv
+save_record_path: records/${automl.name}.csv
+num_cross_validation_fold: 10 # default 
+num_iteration: 2
+train_size: 0.8
