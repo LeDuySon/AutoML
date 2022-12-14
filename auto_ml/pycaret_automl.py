@@ -20,11 +20,10 @@ class PycaretAutoML(BaseAutoML):
         
         df = pd.read_csv(dataset_path)
         fields = self.fields + self.target_field
-        df.filter(items=(self.fields + self.target_field), axis=1);
+        df = df.filter(items=(self.fields + self.target_field), axis=1);
         
         # drop nan value in target var
         df.dropna(subset=self.target_field, inplace=True)
-        logger.info(f"data shape: {np.shape(df)}")
 
         pycaret.setup(data=df, target=self.target_field[0], train_size=self.train_size);
         
@@ -66,9 +65,8 @@ class PycaretAutoML(BaseAutoML):
             
             # run evaluation
             y_test, y_pred = predicts[self.target_field], predicts["Label"]
-            logger.info(f"{np.shape(y_test), np.shape(y_pred)}")
             metric_scores = self.eval(y_test, y_pred)
-            # logger.info(f"{metric_scores}")
+            logger.info(f"{metric_scores}")
             
             # save results
             recorder[iter] = [best_pipeline, metric_scores]
