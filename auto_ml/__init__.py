@@ -1,8 +1,9 @@
 from .tpot_automl import TpotAutoML
+from .pycaret_automl import PycaretAutoML
 
 automl_mapper = {
     "tpot": TpotAutoML,
-    "pycaret": None,
+    "pycaret": PycaretAutoML,
     "auto-sklearn": None
 }
 

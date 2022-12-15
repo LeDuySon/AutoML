@@ -3,10 +3,8 @@ from collections import defaultdict
 import pandas as pd
 from tpot import TPOTRegressor
 from .base import BaseAutoML
-
-from sklearn.metrics import (mean_squared_error,
-                             mean_absolute_percentage_error,
-                             mean_absolute_error)
+from sklearn.metrics import (mean_squared_error, mean_absolute_error)
+from utils.mape import mean_absolute_percentage_error
                              
 class TpotAutoML(BaseAutoML):
     def __init__(self, configs):
