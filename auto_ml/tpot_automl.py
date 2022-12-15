@@ -12,25 +12,28 @@ class TpotAutoML(BaseAutoML):
     def __init__(self, configs):
         super(TpotAutoML, self).__init__(configs["num_iteration"], configs["train_size"])
 
-        automl_config = configs["automl"]
+        self.automl_config = configs["automl"]
         self.num_fold = configs["num_cross_validation_fold"]
         
-        self.pipeline_optimizer = TPOTRegressor(generations=automl_config["generations"], 
-                                                population_size=automl_config["population_size"], 
-                                                scoring="neg_mean_squared_error",
-                                                cv=self.num_fold,
-                                                n_jobs=-1,
-                                                config_dict=automl_config["config_dict"],
-                                                memory=automl_config["memory"],
-                                                verbosity=automl_config["verbosity"])
+    def init_pipeline_optimizer(self, automl_config):
+        pipeline_optimizer = TPOTRegressor(generations=automl_config["generations"], 
+                                            population_size=automl_config["population_size"], 
+                                            scoring="neg_mean_squared_error",
+                                            cv=self.num_fold,
+                                            n_jobs=-1,
+                                            config_dict=automl_config["config_dict"],
+                                            memory=automl_config["memory"],
+                                            verbosity=automl_config["verbosity"])
+        
+        return pipeline_optimizer
     
-    def fit(self, X_train, y_train):
+    def fit(self, pipeline_optimizer, X_train, y_train):
         logger.info(f"Start fit on training set with kfold {self.num_fold}")
-        self.pipeline_optimizer.fit(X_train, y_train)
+        pipeline_optimizer.fit(X_train, y_train)
         logger.info("Finish training")
         
         # return best pipeline
-        return self.pipeline_optimizer._optimized_pipeline
+        return pipeline_optimizer._optimized_pipeline
         
     def infer(self, X_test):
         logger.info("Start inference on test data")
@@ -70,11 +73,14 @@ class TpotAutoML(BaseAutoML):
         X, y = self.preprocess_data((X, y)) 
         for iter in range(self.n):
             logger.info(f"Run iteration {iter}")
+            # init pipeline optimizer
+            pipeline_optimizer = self.init_pipeline_optimizer(self.automl_config)
+            
             # split train/test dataset
             X_train, X_test, y_train, y_test = self.split_dataset(X, y)
             
             # training automl model, tpot already have kfold 
-            best_pipeline = self.fit(X_train, y_train)
+            best_pipeline = self.fit(pipeline_optimizer, X_train, y_train)
             
             # run infer on testset
             y_pred = self.infer(X_test)
