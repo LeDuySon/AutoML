@@ -1,9 +1,10 @@
-from .tpot_automl import TpotAutoML
+# from .tpot_automl import TpotAutoML
+from .autosklearn_automl import AutoSklearnAutoML
 
 automl_mapper = {
-    "tpot": TpotAutoML,
+    # "tpot": TpotAutoML,
+    "auto-sklearn": AutoSklearnAutoML,
     "pycaret": None,
-    "auto-sklearn": None
 }
 
 def automl_builder(automl_type, configs):

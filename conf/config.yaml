@@ -1,5 +1,5 @@
 defaults:
-  - automl: tpot
+  - automl: auto-sklearn
 
 datasets: datasets/ys1a.csv
 save_record_path: records/${automl.name}.csv
