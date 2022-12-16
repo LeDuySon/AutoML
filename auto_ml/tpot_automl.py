@@ -31,11 +31,11 @@ class TpotAutoML(BaseAutoML):
         logger.info("Finish training")
         
         # return best pipeline
-        return pipeline_optimizer._optimized_pipeline
+        return pipeline_optimizer.fitted_pipeline_
         
-    def infer(self, X_test):
+    def infer(self, pipeline_optimizer, X_test):
         logger.info("Start inference on test data")
-        y_pred = self.pipeline_optimizer.predict(X_test)
+        y_pred = pipeline_optimizer.predict(X_test)
         return y_pred
         
     def eval(self, y_test, y_pred):
@@ -81,7 +81,7 @@ class TpotAutoML(BaseAutoML):
             best_pipeline = self.fit(pipeline_optimizer, X_train, y_train)
             
             # run infer on testset
-            y_pred = self.infer(X_test)
+            y_pred = self.infer(pipeline_optimizer, X_test)
             
             # run evaluation 
             metric_scores = self.eval(y_test, y_pred)
