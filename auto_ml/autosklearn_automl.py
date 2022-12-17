@@ -1,9 +1,11 @@
 from loguru import logger
 from collections import defaultdict
 import pandas as pd
+import json
 from .base import BaseAutoML
 import numpy as np
 import autosklearn.regression as AutoSklearn
+import autosklearn.metrics as Metric
 
 from sklearn.metrics import (mean_squared_error,
                              mean_absolute_percentage_error,
@@ -25,9 +27,11 @@ class AutoSklearnAutoML(BaseAutoML):
         i = np.argmax(self.pipeline_optimizer.cv_results_['mean_test_score'])
         logger.info(f"Finish training")
         logger.info(
-            f"Best pipeline resulst {self.pipeline_optimizer.cv_results_}")
+            f"Best pipeline {self.pipeline_optimizer.cv_results_['params'][i]}")
+        logger.info(
+            f"Best val_score {self.pipeline_optimizer.cv_results_['mean_test_score'][i]}")
         # return best pipeline
-        return self.pipeline_optimizer.cv_results_['params'][i]['regressor:__choice__']
+        return self.pipeline_optimizer.cv_results_['params'][i], self.pipeline_optimizer.cv_results_['mean_test_score'][i]
 
     def infer(self, X_test):
         logger.info("Start inference on test data")
@@ -53,8 +57,9 @@ class AutoSklearnAutoML(BaseAutoML):
         df = defaultdict(list)
         for iter, info in recorder.items():
             df["iterations"].append(iter)
-            df["best_pipeline"].append(info[0])
-            df["test_scores"].append(info[1])
+            df["pipelines"].append(info[0])
+            df["test_score"].append(info[1])
+            df["val_score"].append(info[2])
 
         df = pd.DataFrame(df)
         df.to_csv(save_record, index=False)
@@ -67,6 +72,7 @@ class AutoSklearnAutoML(BaseAutoML):
         X, y = self.setup_data(dataset_path)
         X, y = self.preprocess_data((X, y))
         for iter in range(self.n):
+            scorer = Metric.mean_squared_error
             self.pipeline_optimizer = AutoSklearn.AutoSklearnRegressor(
                 time_left_for_this_task=120,
                 per_run_time_limit=30,
@@ -78,24 +84,25 @@ class AutoSklearnAutoML(BaseAutoML):
                     "train_size": self.train_size,
                     "folds": self.num_fold
                 },
-                seed=iter
+                metric=scorer,
             )
             logger.info(f"Run iteration {iter}")
             # split train/test dataset
             X_train, X_test, y_train, y_test = self.split_dataset(X, y)
 
             # training automl model, ausklearn already have kfold
-            best_pipeline = self.fit(X_train, y_train)
+            best_pipeline, best_score = self.fit(X_train, y_train)
 
             # run infer on testset
             y_pred = self.infer(X_test)
 
             # run evaluation
             metric_scores = self.eval(y_test, y_pred)
-            logger.info(f"{metric_scores}")
+
+            logger.info(f"Best metic scores {metric_scores}")
 
             # save results
-            recorder[iter] = [best_pipeline, metric_scores]
+            recorder[iter] = [best_pipeline, metric_scores, best_score]
 
         if (save_record):
             self.save_record(recorder, save_record)
