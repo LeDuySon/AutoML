@@ -40,7 +40,7 @@ class BaseAutoML():
     def split_dataset(self, X, y):
         """Split dataset into training set, test set"""
         logger.info("Start split dataset into train and test set")
-        X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=69,
+        X_train, X_test, y_train, y_test = train_test_split(X, y,
                                                     train_size=self.train_size, test_size=self.test_size)
         
         logger.debug(f"X train: {X_train.shape}")

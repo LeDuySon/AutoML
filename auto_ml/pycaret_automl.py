@@ -39,20 +39,22 @@ class PycaretAutoML(BaseAutoML):
 
         # Start
         df = pd.read_csv(dataset_path)
-        pycaret.setup(data=df, target=self.target_field[0], train_size=self.train_size, silent=True, log_experiment=False, fold_shuffle=True);
+        
         _X, _Y = self.setup_data(dataset_path)
         _X, _Y = self.preprocess_data((_X, _Y))
         X, Y = pd.DataFrame(_X), pd.DataFrame(_Y)
-        all_models = pycaret.models()
         X_train, X_test, y_train, y_test = self.split_dataset(X, Y)
-        pycaret.set_config("X_train", X_train)
-        pycaret.set_config("y_train", y_train)
-        pycaret.set_config("X_test", X_test)
-        pycaret.set_config("y_test", y_test)
+        
         # self.preprocess_data((X, y)) 
         for iter in range(self.n):
             logger.info(f"Run iteration {iter}")
-        
+            pycaret.setup(data=df, target=self.target_field[0], train_size=self.train_size, silent=True, log_experiment=False, fold_shuffle=True);
+            pycaret.set_config("X_train", X_train)
+            pycaret.set_config("y_train", y_train)
+            pycaret.set_config("X_test", X_test)
+            pycaret.set_config("y_test", y_test)
+            all_models = pycaret.models()
+            
             estimator = pycaret.compare_models(verbose=False, sort=self.automl_config["compare_model_sort"])
             # get id of top estimators
             id = all_models.loc[all_models["Reference"].str.endswith(estimator.__class__.__name__)].index[0]
