@@ -1,1 +1,4 @@
 name: "pycaret"
+compare_model_sort: "MSE"
+top_select: 3
+optimize: "MSE"
